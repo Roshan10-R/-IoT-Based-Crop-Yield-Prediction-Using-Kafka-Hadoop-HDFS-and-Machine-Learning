@@ -1,0 +1,242 @@
+version: "3.9"
+
+# ================================================================
+# Docker Compose for IoT Crop Yield Prediction System
+# Services: Zookeeper, Kafka, Hadoop NameNode, Hadoop DataNode,
+#           Backend (Flask), Frontend (React)
+# ================================================================
+# Usage:
+#   Start everything:    docker compose up -d
+#   Infrastructure only: docker compose up -d zookeeper kafka namenode datanode
+#   Stop all:            docker compose down
+#   Reset volumes:       docker compose down -v
+# ================================================================
+
+services:
+
+  # --------------------------------------------------
+  # Zookeeper (required by Kafka)
+  # --------------------------------------------------
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: crop-zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # --------------------------------------------------
+  # Apache Kafka
+  # --------------------------------------------------
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: crop-kafka
+    restart: unless-stopped
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+      - "9101:9101"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # --------------------------------------------------
+  # Kafka Topic Initializer (one-shot)
+  # --------------------------------------------------
+  kafka-init:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: crop-kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    command: |
+      bash -c "
+        echo 'Creating Kafka topic: sensor-readings...' &&
+        kafka-topics --bootstrap-server kafka:29092 \
+          --create --if-not-exists \
+          --topic sensor-readings \
+          --partitions 3 \
+          --replication-factor 1 &&
+        echo 'Topic created successfully.' &&
+        kafka-topics --bootstrap-server kafka:29092 --list
+      "
+    restart: "no"
+
+  # --------------------------------------------------
+  # Hadoop NameNode
+  # --------------------------------------------------
+  namenode:
+    image: apache/hadoop:3.3.6
+    container_name: crop-namenode
+    restart: unless-stopped
+    hostname: namenode
+    command: ["hdfs", "namenode"]
+    ports:
+      - "9870:9870"   # NameNode Web UI
+      - "9000:9000"   # HDFS RPC
+    environment:
+      HADOOP_HOME: /opt/hadoop
+      CLUSTER_NAME: crop-yield-cluster
+    env_file:
+      - ./hadoop.env
+    volumes:
+      - namenode_data:/hadoop/dfs/name
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9870/"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # --------------------------------------------------
+  # Hadoop DataNode
+  # --------------------------------------------------
+  datanode:
+    image: apache/hadoop:3.3.6
+    container_name: crop-datanode
+    restart: unless-stopped
+    hostname: datanode
+    command: ["hdfs", "datanode"]
+    depends_on:
+      namenode:
+        condition: service_healthy
+    environment:
+      HADOOP_HOME: /opt/hadoop
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+    volumes:
+      - datanode_data:/hadoop/dfs/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9864/"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # --------------------------------------------------
+  # HDFS Initializer (creates directories)
+  # --------------------------------------------------
+  hdfs-init:
+    image: apache/hadoop:3.3.6
+    container_name: crop-hdfs-init
+    depends_on:
+      datanode:
+        condition: service_healthy
+    env_file:
+      - ./hadoop.env
+    command: |
+      bash -c "
+        echo 'Creating HDFS directories...' &&
+        hdfs dfs -mkdir -p /crop-yield/raw/sensor-readings &&
+        hdfs dfs -mkdir -p /crop-yield/processed/features &&
+        hdfs dfs -mkdir -p /crop-yield/datasets/historical-yield &&
+        hdfs dfs -mkdir -p /crop-yield/models &&
+        hdfs dfs -mkdir -p /crop-yield/predictions &&
+        hdfs dfs -chmod -R 777 /crop-yield &&
+        echo 'HDFS directories created:' &&
+        hdfs dfs -ls -R /crop-yield
+      "
+    restart: "no"
+
+  # --------------------------------------------------
+  # Flask Backend
+  # --------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: crop-backend
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    environment:
+      - APP_ENV=production
+      - FLASK_HOST=0.0.0.0
+      - FLASK_PORT=5000
+      - FLASK_DEBUG=false
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - KAFKA_TOPIC_SENSOR=sensor-readings
+      - HDFS_NAMENODE_URL=http://namenode:9870
+      - HDFS_USER=hadoop
+      - DATABASE_PATH=/app/data/crop_yield.db
+      - LOCAL_STORAGE_PATH=/app/data/local_fallback
+      - MODEL_PATH=/app/ml/saved_models/crop_yield_model.joblib
+      - LOG_LEVEL=INFO
+    volumes:
+      - backend_data:/app/data
+      - ml_models:/app/ml/saved_models
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # --------------------------------------------------
+  # React Frontend
+  # --------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_URL=http://localhost:5000
+    container_name: crop-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+
+volumes:
+  zookeeper_data:
+  zookeeper_log:
+  kafka_data:
+  namenode_data:
+  datanode_data:
+  backend_data:
+  ml_models:
+
+networks:
+  default:
+    name: crop-yield-network
+    driver: bridge

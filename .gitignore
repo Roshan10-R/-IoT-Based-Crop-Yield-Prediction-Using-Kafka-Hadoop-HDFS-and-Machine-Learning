@@ -1,0 +1,56 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Node
+node_modules/
+npm-debug.log*
+frontend/build/
+
+# ML Models (large binary files - tracked separately)
+ml/saved_models/*.joblib
+ml/saved_models/*.pkl
+
+# Data files
+data/local_fallback/
+data/*.db
+datasets/raw/
+
+# Logs
+logs/
+*.log
+
+# Docker
+.docker/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+*.env.local
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/

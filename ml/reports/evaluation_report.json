@@ -1,0 +1,129 @@
+{
+  "mae": 0.4006,
+  "rmse": 0.7759,
+  "r2": 0.9834,
+  "n_test_samples": 396,
+  "per_crop_metrics": {
+    "potato": {
+      "mae": 1.4832,
+      "rmse": 1.8698,
+      "r2": 0.5732,
+      "n": 61
+    },
+    "wheat": {
+      "mae": 0.2339,
+      "rmse": 0.2931,
+      "r2": 0.6256,
+      "n": 69
+    },
+    "rice": {
+      "mae": 0.3031,
+      "rmse": 0.3901,
+      "r2": 0.4933,
+      "n": 66
+    },
+    "soybean": {
+      "mae": 0.099,
+      "rmse": 0.1245,
+      "r2": 0.535,
+      "n": 67
+    },
+    "cotton": {
+      "mae": 0.1237,
+      "rmse": 0.1553,
+      "r2": 0.607,
+      "n": 70
+    },
+    "maize": {
+      "mae": 0.2653,
+      "rmse": 0.32,
+      "r2": 0.5833,
+      "n": 63
+    }
+  },
+  "sample_predictions": [
+    {
+      "actual": 1.699,
+      "predicted": 1.752
+    },
+    {
+      "actual": 1.671,
+      "predicted": 1.541
+    },
+    {
+      "actual": 3.018,
+      "predicted": 2.903
+    },
+    {
+      "actual": 1.465,
+      "predicted": 1.287
+    },
+    {
+      "actual": 2.583,
+      "predicted": 2.789
+    },
+    {
+      "actual": 1.63,
+      "predicted": 1.607
+    },
+    {
+      "actual": 1.486,
+      "predicted": 1.439
+    },
+    {
+      "actual": 20.149,
+      "predicted": 19.656
+    },
+    {
+      "actual": 3.402,
+      "predicted": 3.12
+    },
+    {
+      "actual": 3.561,
+      "predicted": 3.565
+    },
+    {
+      "actual": 1.636,
+      "predicted": 1.781
+    },
+    {
+      "actual": 3.461,
+      "predicted": 3.676
+    },
+    {
+      "actual": 18.077,
+      "predicted": 16.07
+    },
+    {
+      "actual": 2.994,
+      "predicted": 3.747
+    },
+    {
+      "actual": 3.585,
+      "predicted": 3.935
+    },
+    {
+      "actual": 1.223,
+      "predicted": 1.187
+    },
+    {
+      "actual": 3.452,
+      "predicted": 3.584
+    },
+    {
+      "actual": 2.806,
+      "predicted": 3.226
+    },
+    {
+      "actual": 18.435,
+      "predicted": 17.404
+    },
+    {
+      "actual": 21.212,
+      "predicted": 21.767
+    }
+  ],
+  "evaluation_timestamp": "2026-10-15T21:31:32.330459",
+  "evaluation_note": "Evaluated on chronologically held-out test set (most recent years). No data from the test period was used during training.",
+  "plot_path": "C:\\Users\\rosha\\Desktop\\7th-sem\\dda-project\\crop-yield-prediction\\ml\\reports\\actual_vs_predicted.png"
+}

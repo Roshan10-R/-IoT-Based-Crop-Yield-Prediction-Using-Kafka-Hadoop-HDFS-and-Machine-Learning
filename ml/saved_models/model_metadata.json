@@ -1,0 +1,113 @@
+{
+  "model_name": "gradient_boosting",
+  "version": "1.0.0",
+  "trained_at": "2026-10-15T20:42:22.778382",
+  "model_file": "C:\\Users\\rosha\\Desktop\\7th-sem\\dda-project\\crop-yield-prediction\\ml\\saved_models\\crop_yield_model.joblib",
+  "features": [
+    "crop_type_encoded",
+    "season_encoded",
+    "avg_temperature_c",
+    "total_rainfall_mm",
+    "avg_soil_moisture_pct",
+    "temp_stress",
+    "rainfall_adequacy",
+    "year_normalized",
+    "area_ha",
+    "growth_days"
+  ],
+  "target": "yield_tonnes_per_ha",
+  "target_unit": "tonnes_per_hectare",
+  "metrics": {
+    "all_models": [
+      {
+        "model": "linear_regression",
+        "mae": 3.456,
+        "rmse": 4.4508,
+        "r2": 0.4534,
+        "cv_rmse_mean": 4.4126,
+        "cv_rmse_std": 0.2056
+      },
+      {
+        "model": "random_forest",
+        "mae": 0.426,
+        "rmse": 0.809,
+        "r2": 0.9819,
+        "cv_rmse_mean": 0.7252,
+        "cv_rmse_std": 0.0567
+      },
+      {
+        "model": "gradient_boosting",
+        "mae": 0.4006,
+        "rmse": 0.7759,
+        "r2": 0.9834,
+        "cv_rmse_mean": 0.6991,
+        "cv_rmse_std": 0.0489
+      }
+    ],
+    "best_model": {
+      "model": "gradient_boosting",
+      "mae": 0.4006,
+      "rmse": 0.7759,
+      "r2": 0.9834,
+      "cv_rmse_mean": 0.6991,
+      "cv_rmse_std": 0.0489
+    },
+    "per_crop_test_metrics": {
+      "cotton": {
+        "mae": 0.1237,
+        "rmse": 0.1553,
+        "r2": 0.607,
+        "count": 70
+      },
+      "maize": {
+        "mae": 0.2653,
+        "rmse": 0.32,
+        "r2": 0.5833,
+        "count": 63
+      },
+      "potato": {
+        "mae": 1.4832,
+        "rmse": 1.8698,
+        "r2": 0.5732,
+        "count": 61
+      },
+      "rice": {
+        "mae": 0.3031,
+        "rmse": 0.3901,
+        "r2": 0.4933,
+        "count": 66
+      },
+      "soybean": {
+        "mae": 0.099,
+        "rmse": 0.1245,
+        "r2": 0.535,
+        "count": 67
+      },
+      "wheat": {
+        "mae": 0.2339,
+        "rmse": 0.2931,
+        "r2": 0.6256,
+        "count": 69
+      }
+    },
+    "target_column": "yield_tonnes_per_ha",
+    "target_unit": "tonnes_per_hectare",
+    "features_used": [
+      "crop_type_encoded",
+      "season_encoded",
+      "avg_temperature_c",
+      "total_rainfall_mm",
+      "avg_soil_moisture_pct",
+      "temp_stress",
+      "rainfall_adequacy",
+      "year_normalized",
+      "area_ha",
+      "growth_days"
+    ],
+    "train_size": 1604,
+    "test_size": 396,
+    "split_method": "chronological_by_year",
+    "evaluation_note": "Metrics computed on chronologically held-out test set. Model trained on earlier years, evaluated on more recent years.",
+    "data_source_note": "If training on synthetic data: metrics are illustrative. Real accuracy requires real observation data."
+  }
+}

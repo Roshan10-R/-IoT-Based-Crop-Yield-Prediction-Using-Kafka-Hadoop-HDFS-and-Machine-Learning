@@ -1,0 +1,37 @@
+# ===========================================================
+# Backend Python Dependencies
+# IoT-Based Crop Yield Prediction System
+# Python 3.10+ required
+# ===========================================================
+
+# --- Web Framework ---
+Flask==3.1.0
+flask-cors==5.0.0
+
+# --- Environment ---
+python-dotenv==1.0.1
+
+# --- Kafka ---
+kafka-python-ng>=2.2.0
+
+# --- Data Science ---
+pandas==2.2.3
+numpy==1.26.4
+scikit-learn==1.5.2
+joblib==1.4.2
+
+# --- Visualization ---
+matplotlib==3.9.2
+
+# --- HTTP (for HDFS WebHDFS) ---
+requests==2.32.3
+
+# --- Database ---
+# sqlite3 is built into Python standard library
+
+# --- Testing ---
+pytest==8.3.3
+pytest-cov==6.0.0
+
+# --- Type stubs (dev) ---
+# types-requests
